@@ -21,18 +21,21 @@ export class CategoriesService {
 
   async findOne(id: number) {
     const category = await this.categoryRepository.findOneBy({ id })
-    console.log(category)
     if (!category) {
       throw new NotFoundException('Category does not exist')
     }
     return category;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: number, updateCategoryDto: UpdateCategoryDto) {
+    const category = await this.findOne(id)
+    category.name = updateCategoryDto.name
+    return await this.categoryRepository.save(category)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: number) {
+    const category = await this.findOne(id)
+    await this.categoryRepository.remove(category)
+    return "Category Deleted"
   }
 }
