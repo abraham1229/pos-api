@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { Category } from 'src/categories/entities/category.entity';
+import { GetProductQueryDto } from './dto/get-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -28,8 +29,29 @@ export class ProductsService {
 
   }
 
-  async findAll() {
-    const [data, total] = await this.productRepository.findAndCount({
+  async findAll(categoryId: number | null) {
+    if (categoryId) {
+      const [products, total] = await this.productRepository.findAndCount({
+        where: {
+          category: {
+            id: categoryId
+          }
+        },
+        relations: {
+          category: true
+        },
+        order: {
+          id: 'DESC'
+        }
+      })
+
+      return {
+        products,
+        total
+      }
+    }
+
+    const [products, total] = await this.productRepository.findAndCount({
       relations: {
         category: true
       },
@@ -37,10 +59,12 @@ export class ProductsService {
         id: 'DESC'
       }
     })
+
     return {
-      data, 
+      products,
       total
     }
+
   }
 
   findOne(id: number) {
