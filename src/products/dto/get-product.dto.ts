@@ -6,7 +6,10 @@ export class GetProductQueryDto {
   category_id: number
 
   @IsOptional()
-  @IsNumberString({}, { message: "Amount must be a number" })
-  take: number
-  
+  @IsNumberString({}, { message: "Take must be a number" })
+  take: number 
+
+  @IsOptional()
+  @IsNumberString({}, { message: "Skip must be a number" })
+  skip: number 
 }
