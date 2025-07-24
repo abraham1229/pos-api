@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Category } from 'src/categories/entities/category.entity';
-import { GetProductQueryDto } from './dto/get-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -29,14 +28,15 @@ export class ProductsService {
 
   }
 
-  async findAll(categoryId: number | null) {
+  async findAll(categoryId: number | null, take: number) {
     const options: FindManyOptions<Product> = {
       relations: {
         category: true
       },
       order: {
         id: 'DESC'
-      }
+      },
+      take: take,
     }
 
     if (categoryId) {
