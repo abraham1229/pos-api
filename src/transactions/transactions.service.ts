@@ -21,7 +21,8 @@ export class TransactionsService {
     await this.productRepository.manager.transaction(async (transactionEntityManager) => {
 
       const transaction = new Transaction()
-      transaction.total = createTransactionDto.total
+      const total = createTransactionDto.contents.reduce((total, content) => total + (content.quantity * content.price), 0)
+      transaction.total = total
 
       for (const content of createTransactionDto.contents) {
         const product = await transactionEntityManager.findOneBy(Product, { id: content.productId })
@@ -51,10 +52,7 @@ export class TransactionsService {
       }
 
     })
-
-
-
-
+    
     return "Transaction saved successfully"
   }
 
