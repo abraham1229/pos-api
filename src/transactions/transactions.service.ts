@@ -12,27 +12,42 @@ export class TransactionsService {
     @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>,
     @InjectRepository(TransactionContents) private readonly transactionContentsRepository: Repository<TransactionContents>,
     @InjectRepository(Product) private readonly productRepository: Repository<Product>
-  ){}
+  ) { }
 
   async create(createTransactionDto: CreateTransactionDto) {
-    const transaction = new Transaction()
-    transaction.total = createTransactionDto.total
-    await this.transactionRepository.save(transaction)
 
-    for (const content of createTransactionDto.contents) {
-      const product = await this.productRepository.findOneBy({ id: content.productId })
-      if (!product) throw new NotFoundException('ProductId not found')
-      
-      if (content.quantity > product.inventory) {
-        throw new BadRequestException(`The product ${product.name} is over the available stock`)
+    //Manager has acces to all the entitys
+    //Create a transaction to have better control
+    await this.productRepository.manager.transaction(async (transactionEntityManager) => {
+
+      const transaction = new Transaction()
+      transaction.total = createTransactionDto.total
+
+      for (const content of createTransactionDto.contents) {
+        const product = await transactionEntityManager.findOneBy(Product, { id: content.productId })
+        if (!product) throw new NotFoundException('ProductId not found')
+
+        if (content.quantity > product.inventory) {
+          throw new BadRequestException(`The product ${product.name} is over the available stock`)
+        }
+
+        product.inventory -= content.quantity
+
+        // Create TransactionContents instance
+        const transactionContent = new TransactionContents()
+        transactionContent.quantity = content.quantity
+        transactionContent.price = content.price
+        transactionContent.transaction = transaction
+        transactionContent.product = product // This product will update because of cascade
+
+        await transactionEntityManager.save(transaction)
+        await transactionEntityManager.save(transactionContent)
       }
-        
-      product.inventory -= content.quantity
+
+    })
 
 
-      
-      await this.transactionContentsRepository.save({...content, transaction, product})
-    }
+
 
     return "Transaction saved successfully"
   }
