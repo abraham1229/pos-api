@@ -12,10 +12,10 @@ import { CouponsModule } from './coupons/coupons.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true //To get the env variables cause is not a module
     }),
     TypeOrmModule.forRootAsync({
-      useFactory: typeOrmConfig, //To get the env variables cause is not a module
+      useFactory: typeOrmConfig,  //To get the db
       inject: [ConfigService]
     }),
     CategoriesModule,
