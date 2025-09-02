@@ -64,7 +64,7 @@ export class TransactionsService {
 
     })
 
-    return "Transaction saved successfully"
+    return {message: "Transaction saved successfully"}
   }
 
   findAll(transactionDate?: string) {
